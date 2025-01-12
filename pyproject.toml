@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "energy-tracker"
+version = "0.0.1"
+authors = [
+  { name="Vishnu Sivan", email="codemaker2015@gmail.com" },
+]
+description = "A Python package to track energy consumption and CO2 emissions for LLM models and other computational tasks."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "psutil",
+    "pynvml",
+    "codecarbon"
+]
+
+[project.urls]
+Homepage = "https://github.com/codemaker2015/energy_tracker"
+Issues = "https://github.com/codemaker2015/energy_tracker/issues"
