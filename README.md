@@ -57,7 +57,6 @@ try:
     tracker.log_energy_consumption()
 finally:
     tracker.shutdown()
-
 ```
 
 ## Requirements
