@@ -97,7 +97,18 @@ class EnergyTracker:
         Stop the CO2 emissions tracker and print the estimated emissions.
         """
         emissions = self.tracker.stop()
+        # Environmental equivalence calculations
+        trees_needed = emissions / 0.057  # One tree absorbs ~0.057 kg CO2 per day
+        cycling_km = emissions / 0.251  # Cycling avoids 0.251 kg CO2 per km
+        public_transport_km = emissions / 0.18  # Public transport saves 0.18 kg CO2 per km
+        internet_free_hours = emissions / 0.06  # One hour of internet emits 0.06 kg CO2
+
         print(f"Estimated CO2 Emissions: {emissions:.4f} kgCO2")
+        print(f"To offset this, you could:")
+        print(f"- Let {trees_needed:.2f} trees absorb CO2 for a day 🌳")
+        print(f"- Cycle for {cycling_km:.2f} km instead of driving 🚴")
+        print(f"- Take public transport for {public_transport_km:.2f} km instead of driving 🚆")
+        print(f"- Stay offline for {internet_free_hours:.2f} hours 📵")
 
     def shutdown(self):
         """

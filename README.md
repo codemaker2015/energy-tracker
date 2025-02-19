@@ -4,9 +4,9 @@ A Python package to track energy consumption and CO2 emissions for LLM models an
 
 ## Features
 
-- tracks CPU power usage
-- tracks GPU power usage (NVIDIA GPUs only)
-- tracks memory usage
+- Tracks CPU power usage
+- Tracks GPU power usage (NVIDIA GPUs only)
+- Tracks memory usage
 - Estimates CO2 emissions based on energy consumption
 
 ## Installation
@@ -22,7 +22,7 @@ You can use the EnergyTracker class to start tracking energy consumption and CO2
 
 ### Simple Usage
 ```python
-from energy_tracker import EnergyTracker
+from energy_tracker.tracker import EnergyTracker
 
 # Initialize the energy tracker
 tracker = EnergyTracker()

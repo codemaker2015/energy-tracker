@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 PACKAGE_NAME = "energy_tracker"
 
 # Define the package version
-VERSION = "0.3.0"
+VERSION = "0.2.0"
 
 # Define the package description
 DESCRIPTION = "A Python package to tracks energy consumption and CO2 emissions for LLM models and other computational tasks."
