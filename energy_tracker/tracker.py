@@ -1,18 +1,11 @@
-"""
-EnergyTracker Module
-
-This module provides tools to monitor the energy consumption of computational tasks, 
-including CPU and GPU power usage, memory usage, and estimated CO2 emissions.
-
-Dependencies:
-- psutil
-- pynvml
-- codecarbon
-"""
-
 import psutil
-from pynvml import nvmlInit, nvmlDeviceGetHandleByIndex, nvmlDeviceGetPowerUsage, nvmlShutdown
 from codecarbon import EmissionsTracker
+
+try:
+    from pynvml import nvmlInit, nvmlDeviceGetHandleByIndex, nvmlDeviceGetPowerUsage, nvmlShutdown
+    NVML_AVAILABLE = True
+except (ImportError, FileNotFoundError):
+    NVML_AVAILABLE = False
 
 
 class EnergyTracker:
@@ -21,11 +14,6 @@ class EnergyTracker:
 
     This class uses system monitoring tools (psutil, pynvml) and the CodeCarbon 
     library to track energy usage of CPUs and GPUs, as well as estimate CO2 emissions.
-    
-    Attributes:
-        gpu_index (int): Index of the GPU to monitor.
-        tracker (EmissionsTracker): Instance of CodeCarbon's emissions tracker.
-        gpu_handle: Handle to the GPU device initialized by NVIDIA Management Library (NVML).
     """
 
     def __init__(self, gpu_index=0):
@@ -34,11 +22,20 @@ class EnergyTracker:
         
         :param gpu_index: Index of the GPU to monitor (default: 0).
         """
+        global NVML_AVAILABLE  # Ensure we refer to the global variable
         self.gpu_index = gpu_index
-        nvmlInit()
-        self.gpu_handle = nvmlDeviceGetHandleByIndex(gpu_index)
         self.tracker = EmissionsTracker()
         self.tracker.start()
+
+        if NVML_AVAILABLE:
+            try:
+                nvmlInit()
+                self.gpu_handle = nvmlDeviceGetHandleByIndex(gpu_index)
+            except Exception as e:
+                print(f"Warning: Failed to initialize NVML. GPU tracking disabled. Error: {e}")
+                NVML_AVAILABLE = False  # Disable GPU tracking if initialization fails
+        else:
+            print("NVML is not available. GPU tracking will be disabled.")
 
     def get_cpu_power(self):
         """
@@ -62,10 +59,16 @@ class EnergyTracker:
         """
         Get the power consumption of the GPU in Watts.
         
-        :return: GPU power consumption in Watts.
+        :return: GPU power consumption in Watts, or 0 if NVML is unavailable.
         """
-        power_usage_mw = nvmlDeviceGetPowerUsage(self.gpu_handle)
-        return power_usage_mw / 1000  # Convert mW to W
+        if NVML_AVAILABLE:
+            try:
+                power_usage_mw = nvmlDeviceGetPowerUsage(self.gpu_handle)
+                return power_usage_mw / 1000  # Convert mW to W
+            except Exception as e:
+                print(f"Warning: Failed to get GPU power usage. Error: {e}")
+                return 0.0
+        return 0.0
 
     def get_memory_usage(self):
         """
@@ -97,6 +100,7 @@ class EnergyTracker:
         Stop the CO2 emissions tracker and print the estimated emissions.
         """
         emissions = self.tracker.stop()
+
         # Environmental equivalence calculations
         trees_needed = emissions / 0.057  # One tree absorbs ~0.057 kg CO2 per day
         cycling_km = emissions / 0.251  # Cycling avoids 0.251 kg CO2 per km
@@ -104,14 +108,24 @@ class EnergyTracker:
         internet_free_hours = emissions / 0.06  # One hour of internet emits 0.06 kg CO2
 
         print(f"Estimated CO2 Emissions: {emissions:.4f} kgCO2")
-        print(f"To offset this, you could:")
-        print(f"- Let {trees_needed:.2f} trees absorb CO2 for a day 🌳")
-        print(f"- Cycle for {cycling_km:.2f} km instead of driving 🚴")
-        print(f"- Take public transport for {public_transport_km:.2f} km instead of driving 🚆")
-        print(f"- Stay offline for {internet_free_hours:.2f} hours 📵")
+
+        if any(val >= 0.1 for val in [trees_needed, cycling_km, public_transport_km, internet_free_hours]):
+            print("To offset this, you could:")
+            if trees_needed >= 0.1:
+                print(f"- Let {trees_needed:.2f} trees absorb CO2 for a day 🌳")
+            if cycling_km >= 0.1:
+                print(f"- Cycle for {cycling_km:.2f} km instead of driving 🚴")
+            if public_transport_km >= 0.1:
+                print(f"- Take public transport for {public_transport_km:.2f} km instead of driving 🚆")
+            if internet_free_hours >= 0.1:
+                print(f"- Stay offline for {internet_free_hours:.2f} hours 📵")
 
     def shutdown(self):
         """
         Shutdown the NVML (NVIDIA Management Library) for GPU monitoring.
         """
-        nvmlShutdown()
+        if NVML_AVAILABLE:
+            try:
+                nvmlShutdown()
+            except Exception as e:
+                print(f"Warning: Failed to shut down NVML. Error: {e}")
